@@ -9,4 +9,4 @@ pip install -r requirements.txt
 python server.py
 ```
 
-Then just open `http://localhost:23333'.
+Then just open `http://localhost:23333`.
