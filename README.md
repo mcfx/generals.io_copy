@@ -5,8 +5,8 @@ This imitation only guarantees that the rule is almost the same (I'm not sure if
 
 ## Running
 ```shell
-pip install -r requirements.txt
-python server.py
+pip3 install -r requirements.txt
+python3 server.py
 ```
 
 Then just open `http://localhost:23333`.
