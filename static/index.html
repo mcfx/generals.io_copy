@@ -1,35 +1,26 @@
-<html><head><meta charset="utf-8"><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/socket.io-client@2.2.0/dist/socket.io.js"></script><script src="/main.js?v=26"></script><link rel="stylesheet" href="/main.css?v=9"><title>generals</title></head><body>
-<div id="game" style="display:none"><div id="map"></div><div id="map_back"></div></div>
-<table id="game-leaderboard" style="display:none"><tbody>
-<div id="turn-counter" style="display:none"></div>
-<tr><td>Team</td><td>Player</td><td>Army</td><td>Land</td></tr>
-</tbody></table>
-<div id="menu" class="center center-tag" style="display:none">
-<div style="margin-bottom:15px;"><input type="text" id="username-input" placeholder="Anonymous" value=""></div>
+<html>
 
-<div class="custom-queue-page-container">
-<h3>Select your team:</h3><div id="tabs-custom-team" class="tabs background unselectable"><input type="hidden" value="1"><div class="inline-button inverted">1</div><div class="inline-button">2</div><div class="inline-button">3</div><div class="inline-button">4</div><div class="inline-button">5</div><div class="inline-button">6</div><div class="inline-button">7</div><div class="inline-button">8</div><div class="inline-button">9</div><div class="inline-button">Spectator</div></div><br>
-<div id="teams"></div>
-<h3>Game Speed:</h3><div id="tabs-game-speed" class="tabs background unselectable"><input type="hidden" value="1x"><div class="inline-button">0.25x</div><div class="inline-button">0.5x</div><div class="inline-button">0.75x</div><div class="inline-button inverted">1x</div><div class="inline-button">1.5x</div><div class="inline-button">2x</div><div class="inline-button">3x</div><div class="inline-button">4x</div><div class="inline-button">8x</div><div class="inline-button">16x</div></div>
-<p><input type="text" id="custom-map" placeholder="Custom Map Token" value=""></p>
-<h3 class="custom-queue-slider-header">Map Width:</h3><div class="slider-container" id="map-width"><input type="range" step="0.01" min="0" max="1" value="0.5"><p class="center-horizontal slider-value">0.5</p><p class="slider-min">small</p><p class="slider-max">large</p></div>
-<h3 class="custom-queue-slider-header">Map Height:</h3><div class="slider-container" id="map-height"><input type="range" step="0.01" min="0" max="1" value="0.5"><p class="center-horizontal slider-value">0.5</p><p class="slider-min">small</p><p class="slider-max">large</p></div>
-<h3 class="custom-queue-slider-header">City Density:</h3><div class="slider-container" id="city-density"><input type="range" step="0.01" min="0" max="1" value="0.5"><p class="center-horizontal slider-value">0.5</p><p class="slider-min">low</p><p class="slider-max">high</p></div>
-<h3 class="custom-queue-slider-header">Mountain Density:</h3><div class="slider-container" id="mountain-density"><input type="range" step="0.01" min="0" max="1" value="0.5"><p class="center-horizontal slider-value">0.5</p><p class="slider-min">low</p><p class="slider-max">high</p></div>
-<h3 class="custom-queue-slider-header" style="margin-bottom: 0px;">Swamp Density:</h3><p style="margin: 2px; opacity: 0.75;">Swamps drain 1 army per turn.</p><div class="slider-container" id="swamp-density"><input type="range" step="0.01" min="0" max="1" value="0"><p class="center-horizontal slider-value">0.0</p><p class="slider-min">low</p><p class="slider-max">high</p></div>
-</div>
-<p id="host-true" class="custom-host-message" style="background-color:teal;display:none">You are the Host of this game. Only you can change the game's settings.</p>
-<p id="host-false" class="custom-host-message" style="background-color:rgba(255,0,0,0.25);display:none">You are not the Host of this game, so you cannot change the game's settings.</p>
-<div id="you-are" style="display:none"><p style="margin-right:3px;display:inline">You are:</p><span></span></div>
-<button id="force-start" style="display:none"></button>
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="/main.css?v=10">
+    <title>generals</title>
+</head>
 
-</div>
+<body>
+    <div id="menu" class="center center-tag">
+        <div style="margin-bottom:15px;"><input type="text" id="username-input" placeholder="Room ID" value=""></div>
+        <button id="enter-room">Enter room</button><br>
+        <button id="replays" class="small">Replays</button>
+    </div>
+    <script>
+        $('#enter-room').on('click', function () {
+            location.href = '/games/' + $('#username-input').val();
+        });
+        $('#replays').on('click', function () {
+            location.href = '/replays';
+        });
+    </script>
+</body>
 
-<div id="chat">
-<div id="chat-messages-container"></div>
-<input type="text" id="chatroom-input" class="" placeholder="Press [Enter] to chat." value="">
-</div>
-
-<div class="alert center" id="status-alert" style="display:none"><center><h1 style="margin:15px 0px 5px;text-align:center;font-family:Quicksand-Bold;white-space:nowrap">Game Over</h1><p style="text-align:center;margin-bottom:0"><span>You were defeated by <span style="font-family: Quicksand-Bold;"></span>.</span></p><button class="small inverted" style="margin-top:16px">Spectate</button><br><button class="inverted">Play Again</button></center></div>
-
-</body></html>
+</html>

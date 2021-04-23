@@ -1,0 +1,59 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.min.js"></script>
+    <link rel="stylesheet" href="/main.css?v=10">
+    <title>generals</title>
+</head>
+
+<body style="overflow:scroll">
+    <center id="app">
+        <table class="list selectable">
+            <thead>
+                <tr>
+                    <th style="width: 12em;">Time</th>
+                    <th>Turns</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="replay in replays" @click="gotoReplay(replay.id)">
+                    <td>{{ getTime(replay.time) }}</td>
+                    <td>{{ replay.turn }}</td>
+                    <td>
+                        <div v-for="name in replay.rank">
+                            {{ name }}
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </center>
+    <script>
+        function getTime(time) {
+            var date = new Date((time + 8 * 3600) * 1000);
+            return date.toJSON().substr(0, 19).replace('T', ' ');
+        }
+        function gotoReplay(id) {
+            location.href = '/replays/' + id;
+        }
+        new Vue({
+            el: '#app',
+            data: function () {
+                return {
+                    replays: [],
+                }
+            },
+            created: function () {
+                axios.get('/api/replays').then(res => {
+                    this.replays = res.data;
+                    console.log(this.replays);
+                })
+            }
+        })
+    </script>
+</body>
+
+</html>

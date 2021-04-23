@@ -1,0 +1,169 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="/main.js?v=29"></script>
+    <link rel="stylesheet" href="/main.css?v=11">
+    <title>generals</title>
+</head>
+
+<body>
+    <div id="game" style="display:none">
+        <div id="map"></div>
+        <div id="map_back"></div>
+    </div>
+    <table id="game-leaderboard" style="display:none">
+        <tbody>
+            <div id="turn-counter" style="display:none"></div>
+            <tr>
+                <td>Team</td>
+                <td>Player</td>
+                <td>Army</td>
+                <td>Land</td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="menu" class="center center-tag" style="display:none">
+        <div style="margin-bottom:15px;"><input type="text" id="username-input" placeholder="Anonymous" value=""></div>
+
+        <div class="custom-queue-page-container">
+            <h3>Select your team:</h3>
+            <div id="tabs-custom-team" class="tabs background unselectable">
+                <input type="hidden" value="1">
+                <div class="inline-button inverted">1</div>
+                <div class="inline-button">2</div>
+                <div class="inline-button">3</div>
+                <div class="inline-button">4</div>
+                <div class="inline-button">5</div>
+                <div class="inline-button">6</div>
+                <div class="inline-button">7</div>
+                <div class="inline-button">8</div>
+                <div class="inline-button">9</div>
+                <div class="inline-button">10</div>
+                <div class="inline-button">11</div>
+                <div class="inline-button">12</div>
+                <div class="inline-button">13</div>
+                <div class="inline-button">14</div>
+                <div class="inline-button">15</div>
+                <div class="inline-button">16</div>
+                <div class="inline-button">Spectator</div>
+            </div><br>
+            <div id="teams"></div>
+            <h3>Game Speed:</h3>
+            <div id="tabs-game-speed" class="tabs background unselectable">
+                <input type="hidden" value="1x">
+                <div class="inline-button">0.25x</div>
+                <div class="inline-button">0.5x</div>
+                <div class="inline-button">0.75x</div>
+                <div class="inline-button inverted">1x</div>
+                <div class="inline-button">1.5x</div>
+                <div class="inline-button">2x</div>
+                <div class="inline-button">3x</div>
+                <div class="inline-button">4x</div>
+                <div class="inline-button">8x</div>
+                <div class="inline-button">16x</div>
+            </div>
+            <p><input type="text" id="custom-map" placeholder="Custom Map Token" value="" style="margin-top:3px"></p>
+            <h3>Map Width:</h3>
+            <div class="slider-container" id="map-width">
+                <input type="range" step="0.01" min="0" max="1" value="0.5">
+                <p class="center-horizontal slider-value">0.5</p>
+                <p class="slider-min">small</p>
+                <p class="slider-max">large</p>
+            </div>
+            <h3>Map Height:</h3>
+            <div class="slider-container" id="map-height">
+                <input type="range" step="0.01" min="0" max="1" value="0.5">
+                <p class="center-horizontal slider-value">0.5</p>
+                <p class="slider-min">small</p>
+                <p class="slider-max">large</p>
+            </div>
+            <h3>City Density:</h3>
+            <div class="slider-container" id="city-density">
+                <input type="range" step="0.01" min="0" max="1" value="0.5">
+                <p class="center-horizontal slider-value">0.5</p>
+                <p class="slider-min">low</p>
+                <p class="slider-max">high</p>
+            </div>
+            <h3>Mountain Density:</h3>
+            <div class="slider-container" id="mountain-density">
+                <input type="range" step="0.01" min="0" max="1" value="0.5">
+                <p class="center-horizontal slider-value">0.5</p>
+                <p class="slider-min">low</p>
+                <p class="slider-max">high</p>
+            </div>
+            <h3 style="margin-bottom: 0px;">Swamp Density:</h3>
+            <p style="margin: 2px; opacity: 0.75;">Swamps drain 1 army per turn.</p>
+            <div class="slider-container" id="swamp-density">
+                <input type="range" step="0.01" min="0" max="1" value="0">
+                <p class="center-horizontal slider-value">0.0</p>
+                <p class="slider-min">low</p>
+                <p class="slider-max">high</p>
+            </div>
+        </div>
+        <p id="host-true" class="custom-host-message" style="background-color:teal;display:none">You are the Host of
+            this game. Only you can change the game's settings.</p>
+        <p id="host-false" class="custom-host-message" style="background-color:rgba(255,0,0,0.25);display:none">You are
+            not the Host of this game, so you cannot change the game's settings.</p>
+        <div id="you-are" style="display:none">
+            <p style="margin-right:3px;display:inline">You are:</p><span></span>
+        </div>
+        <button id="force-start" style="display:none"></button>
+
+    </div>
+
+    <div id="chat" style="display:none">
+        <div id="chat-messages-container"></div>
+        <input type="text" id="chatroom-input" class="" placeholder="Press [Enter] to chat." value="">
+    </div>
+
+    <div class="alert center" id="status-alert" style="display:none">
+        <center>
+            <h1 style="margin:15px 0px 5px;text-align:center;font-family:Quicksand-Bold;white-space:nowrap">
+                Game Over
+            </h1>
+            <p style="text-align:center;margin-bottom:0">
+                <span>You were defeated by <span style="font-family: Quicksand-Bold;"></span>.</span>
+            </p>
+            <button class="small inverted" style="margin-top:16px">Spectate</button><br>
+            <button class="inverted">Play Again</button><br>
+            <button class="inverted" style="display:none">Watch Replay</button><br>
+            <button class="inverted">Exit</button>
+        </center>
+    </div>
+
+    <div id="replay-top-left" style="display:none">
+        <div id="replay-turn-jump" class="background">
+            Jump to turn:
+            <input type="text" id="replay-turn-jump-input" class="unselectable" placeholder="0">
+            <div id="replay-turn-jump-button" class="inline-button">→</div>
+        </div>
+        <button class="small" style="display: block;">AutoPlay</button>
+        <button class="small" style="display: block;">Exit</button>
+    </div>
+
+    <div id="replay-bottom" class="fixed-center-horizontal" style="display:none">
+        <center>
+            <div id="tabs-replay-autoplay" class="tabs background unselectable" style="display:none">
+                <input type="hidden" value="1x">
+                <div class="inline-button">0.5x</div>
+                <div class="inline-button inverted">1x</div>
+                <div class="inline-button">2x</div>
+                <div class="inline-button">5x</div>
+                <div class="inline-button">10x</div>
+            </div>
+            <br>
+            <div id="replay-bottom-bar" class="background">
+                <div class="unselectable"><span>[←]</span><br>Back</div>
+                <div class="unselectable"><span>[Spacebar]</span><br>Toggle Auto Play</div>
+                <div class="unselectable"><span>[→]</span><br>Next Move</div>
+            </div>
+        </center>
+    </div>
+
+</body>
+
+</html>
