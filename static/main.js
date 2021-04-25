@@ -23,15 +23,107 @@ $(document).ready(function () {
 			x = e.pageX, y = e.pageY;
 		}
 	});
+	var touches = [], expected_scale;
+	function startTouch(s) {
+		expected_scale = scale_sizes[scale];
+		if (s.length <= 2) touches = s;
+		else touches = [];
+	}
+	function handleMove(s) {
+		var x = touches[0].pageX, y = touches[0].pageY, X = s[0].pageX, Y = s[0].pageY;
+		$('#map').css('left', parseInt($('#map').css('left')) - x + X);
+		$('#map').css('top', parseInt($('#map').css('top')) - y + Y);
+	}
+	function dis(a, b) {
+		return Math.sqrt((a.pageX - b.pageX) * (a.pageX - b.pageX) + (a.pageY - b.pageY) * (a.pageY - b.pageY));
+	}
+	function moveTouch(s) {
+		console.log(s);
+		if (touches.length == 0) return;
+		if (touches.length == 1) {
+			if (s.length == 1) {
+				handleMove(s);
+				touches = s;
+			} else if (s.length == 2) {
+				var dis1 = dis(touches[0], s[0]), dis2 = dis(touches[0], s[1]);
+				if (dis1 > dis2) s = [s[1], s[0]];
+				handleMove(s);
+				touches = s;
+			} else {
+				touches = [];
+			}
+		} else {
+			if (s.length == 1) {
+				var dis1 = dis(touches[0], s[0]), dis2 = dis(touches[1], s[0]);
+				if (dis1 > dis2) touches = [touches[1], touches[0]];
+				handleMove(s);
+				touches = s;
+			} else if (s.length == 2) {
+				var x = (touches[0].pageX + touches[1].pageX) / 2, y = (touches[0].pageY + touches[1].pageY) / 2;
+				var X = (s[0].pageX + s[1].pageX) / 2, Y = (s[0].pageY + s[1].pageY) / 2;
+				$('#map').css('left', parseInt($('#map').css('left')) - x + X);
+				$('#map').css('top', parseInt($('#map').css('top')) - y + Y);
+				var dis1 = dis(touches[0], touches[1]), dis2 = dis(s[0], s[1]);
+				expected_scale *= dis2 / dis1;
+				if (expected_scale.toString().toLowerCase().indexOf('n') != -1) {
+					expected_scale = scale_sizes[scale];
+				} else {
+					var pos, mi = 200;
+					for (var i = 1; i < scale_sizes.length; i++) {
+						var t = Math.abs(scale_sizes[i] - expected_scale);
+						if (t < mi) mi = t, pos = i;
+					}
+					if (pos != scale) {
+						scale = pos;
+						if (typeof (localStorage) != "undefined") {
+							localStorage.scale = scale.toString();
+						}
+						render();
+					}
+				}
+				touches = s;
+			} else {
+				touches = [];
+			}
+		}
+	}
+	function endTouch() {
+		touches = [];
+	}
+	function bindTouch(obj) {
+		obj.addEventListener('touchstart', function (e) {
+			if (!in_game) return;
+			startTouch(e.targetTouches);
+		}, false);
+		obj.addEventListener('touchmove', function (e) {
+			if (!in_game) return;
+			moveTouch(e.targetTouches);
+		}, false);
+		obj.addEventListener('touchend', function (e) {
+			if (!in_game) return;
+			moveTouch(e.targetTouches);
+			endTouch();
+		}, false);
+	}
+	bindTouch(document);
+
+	if (window.innerWidth <= 1000) {
+		// shoule be mobile
+		$('#turn-counter').attr('class', 'mobile');
+		$('#game-leaderboard').attr('class', 'mobile');
+		$('#replay-top-left').attr('class', 'mobile');
+	}
 });
 
 function htmlescape(x) {
 	return $('<div>').text(x).html();
 }
 
-var dire = [{ x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 }];
-var dire_char = ['↑', '↓', '←', '→'];
-var dire_class = ['arrow_u', 'arrow_d', 'arrow_l', 'arrow_r'];
+const dire = [{ x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 }];
+const dire_char = ['↑', '↓', '←', '→'];
+const dire_class = ['arrow_u', 'arrow_d', 'arrow_l', 'arrow_r'];
+
+const scale_sizes = [0, 20, 25, 32, 40, 50, 60];
 
 var n, m, turn, player, scale, selx, sely, selt, in_game = false;
 var grid_type, army_cnt, have_route = Array(4);
@@ -62,7 +154,7 @@ function replayStart() {
 	}
 }
 
-function init_map(_n, _m) {
+function init_map(_n, _m, general) {
 	chat_focus = false;
 	$('#chatroom-input').blur();
 	n = _n, m = _m;
@@ -92,8 +184,12 @@ function init_map(_n, _m) {
 		ts += '</tr>';
 	}
 	$('#map').html('<table><tbody>' + ts + '</table></tbody>');
-	$('#map').css('left', $(document).width() / 2 + 'px');
-	$('#map').css('top', $(document).height() / 2 + 'px');
+
+	if (!general || general[0] == -1) {
+		general = [n / 2 - 0.5, m / 2 - 0.5];
+	}
+	$('#map').css('left', $(document).width() / 2 + (m / 2 - general[1] - 0.5) * scale_sizes[scale] + 'px');
+	$('#map').css('top', $(document).height() / 2 + (n / 2 - general[0] - 0.5) * scale_sizes[scale] + 'px');
 	for (var i = 0; i < n; i++) {
 		for (var j = 0; j < m; j++) {
 			$('#t' + i + '_' + j).on('click', Function("click(" + i + "," + j + ")"));
@@ -258,8 +354,10 @@ function render() {
 			} else if (Math.abs(i - selx) + Math.abs(j - sely) == 1 && grid_type[i][j] != 201) {
 				cls += ' attackable';
 			}
+			if (txt != '' && scale == 1) txt = '<div class="txt">' + txt + '</div>';
 			for (var d = 0; d < 4; d++)if (have_route[d][i][j]) {
-				txt += '<div class="' + dire_class[d] + '">' + dire_char[d] + '</div>';
+				if (scale > 1) txt += '<div class="' + dire_class[d] + '">' + dire_char[d] + '</div>';
+				else txt += '<div class="' + dire_class[d] + '"><div class="txt">' + dire_char[d] + '</div></div>';
 			}
 			if ($('#t' + i + '_' + j).attr('class') != cls) {
 				$('#t' + i + '_' + j).attr('class', cls);
@@ -391,9 +489,10 @@ socket.on('set_id', function (data) {
 });
 
 socket.on('init_map', function (data) {
-	init_map(data.n, data.m);
+	init_map(data.n, data.m, data.general);
 	in_game = true;
 	lost = false;
+	console.log(data);
 	for (var i = 0; i < data.player_ids.length; i++) {
 		if (data.player_ids[i] == client_id) {
 			player = i + 1;
@@ -537,11 +636,22 @@ socket.on('room_update', function (data) {
 				$('#username-input').val(data.players[i].uid);
 			}
 		}
+		tmp[data.players[i].team] += '<div>';
 		if (data.players[i].team) {
-			tmp[data.players[i].team] += '<div><span class="inline-color-block c' + (i + 1) + '"></span><p>' + htmlescape(data.players[i].uid) + '</p></div>';
-		} else {
-			tmp[data.players[i].team] += '<div><p>' + htmlescape(data.players[i].uid) + '</p></div>';
+			if (i == 0) {
+				tmp[data.players[i].team] += '<span class="inline-color-block">' + crown_html + '</span>';
+			} else {
+				tmp[data.players[i].team] += '<span class="inline-color-block c' + (i + 1) + '"></span>';
+			}
 		}
+		tmp[data.players[i].team] += '<p>';
+		if (data.players[i].ready) tmp[data.players[i].team] += '<u>';
+		if (i == 0) tmp[data.players[i].team] += '<b>';
+		tmp[data.players[i].team] += htmlescape(data.players[i].uid);
+		if (i == 0) tmp[data.players[i].team] += '</b>';
+		if (data.players[i].ready) tmp[data.players[i].team] += '</u>';
+		tmp[data.players[i].team] += '</p>';
+		tmp[data.players[i].team] += '</div>';
 	}
 	for (var i = 0; i <= max_teams; i++) {
 		if (tmp[i] != '') {

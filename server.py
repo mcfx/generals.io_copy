@@ -99,8 +99,8 @@ def on_clear_queue():
 		game_instance[game_uid[request.sid]].pop_queue(request.sid)
 
 
-def emit_init_map(game_id, data):
-	socketio.emit('init_map', data, room='game_' + game_id)
+def emit_init_map(sid, data):
+	socketio.emit('init_map', data, room='sid_' + sid)
 
 
 def emit_update(sid, data):
@@ -157,7 +157,7 @@ def gen_game_conf(gid):
 	pl = []
 	cnt = 0
 	for i in gr_players[gid]:
-		pl.append({'sid': md5(i[0]), 'uid': i[1], 'team': i[2]})
+		pl.append({'sid': md5(i[0]), 'uid': i[1], 'team': i[2], 'ready': bool(i[3] and i[2])})
 		if i[2] and i[3]:
 			cnt += 1
 	need = get_req(gr_players[gid])
@@ -330,8 +330,7 @@ def start_game(gid):
 	grc['player_names'] = player_names
 	grc['player_teams'] = player_teams
 	socketio.emit('starting', {}, room='game_' + gid)
-	game = Game(grc, emit_update, player_sids, chat_message, gid, md5, end_game)
-	emit_init_map(gid, {'n': game.n, 'm': game.m, 'player_ids': player_ids})
+	game = Game(grc, emit_update, emit_init_map, player_sids, player_ids, chat_message, gid, md5, end_game)
 	game.start_game(socketio)
 	game_instance[gid] = game
 
@@ -370,4 +369,4 @@ def on_send_message(data):
 
 
 if __name__ == '__main__':
-	socketio.run(app, port=19267, host='0.0.0.0')
+	socketio.run(app, port=23333, host='0.0.0.0')

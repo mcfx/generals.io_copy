@@ -2,11 +2,14 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-    <script src="/main.js?v=30"></script>
-    <link rel="stylesheet" href="/main.css?v=12">
+    <script src="/crown.js"></script>
+    <script src="/main.js?v=39"></script>
+    <link rel="stylesheet" href="/main.css?v=17">
     <title>generals</title>
 </head>
 
@@ -15,9 +18,10 @@
         <div id="map"></div>
         <div id="map_back"></div>
     </div>
+
+    <div id="turn-counter" style="display:none"></div>
     <table id="game-leaderboard" style="display:none">
         <tbody>
-            <div id="turn-counter" style="display:none"></div>
             <tr>
                 <td>Team</td>
                 <td>Player</td>
@@ -26,9 +30,9 @@
             </tr>
         </tbody>
     </table>
+
     <div id="menu" class="center center-tag" style="display:none">
         <div style="margin-bottom:15px;"><input type="text" id="username-input" placeholder="Anonymous" value=""></div>
-
         <div class="custom-queue-page-container">
             <h3>Select your team:</h3>
             <div id="tabs-custom-team" class="tabs background unselectable">

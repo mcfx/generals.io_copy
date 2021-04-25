@@ -85,7 +85,7 @@ def get_diff(a, b):
 
 
 class Game:
-	def __init__(self, game_conf, update, player_ids, chat_message, gid, md5, end_game):
+	def __init__(self, game_conf, update, emit_init_map, player_ids, rplayer_ids, chat_message, gid, md5, end_game):
 		print('start game:', gid, player_ids, game_conf['player_names'])
 		sys.stdout.flush()
 		self.otime = time.time()
@@ -129,6 +129,8 @@ class Game:
 		else:
 			self.genmap()
 		self.sel_generals()
+		for i in range(self.pcnt):
+			emit_init_map(self.player_ids[i], {'n': self.n, 'm': self.m, 'player_ids': rplayer_ids, 'general': self.generals[i]})
 
 	def send_message(self, sid, data):
 		id = self.player_ids_rev[sid]
@@ -253,7 +255,7 @@ class Game:
 				if self.st[i][j]:
 					if self.grid_type[i][j] == -2:
 						self.grid_type[i][j] = 0
-		self.generals = ge
+		self.generals = [(-1, -1)for _ in range(self.pcnt)]
 		cu = 0
 		for i in range(self.pcnt):
 			if self.team[i] == 0:
@@ -262,6 +264,7 @@ class Game:
 				if ge[cu] == (-1, -1):
 					self.pstat[i] = left_game
 				else:
+					self.generals[i] = ge[cu]
 					self.grid_type[ge[cu][0]][ge[cu][1]] = -2
 					self.owner[ge[cu][0]][ge[cu][1]] = i + 1
 					self.army_cnt[ge[cu][0]][ge[cu][1]] = 1
