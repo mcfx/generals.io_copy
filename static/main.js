@@ -40,7 +40,7 @@ var route;
 var room_id = '', client_id, ready_state = 0, lost;
 var max_teams = 16;
 
-var chat_focus = false, is_team = false;
+var chat_focus = false, is_team = false, starting_audio;
 
 var is_replay = false, replay_id = false, replay_data = [], rcnt = 0, cur_turn = 0, is_autoplaying = false, autoplay_speed = 1;
 
@@ -206,6 +206,7 @@ $(document).ready(function () {
 
 function render() {
 	$('#menu').css('display', 'none');
+	$('#game-starting').css('display', 'none');
 	$('#game').css('display', '');
 	for (var d = 0; d < 4; d++) {
 		for (var i = 0; i < n; i++) {
@@ -356,6 +357,12 @@ function update(data) {
 
 socket.on('update', update);
 
+socket.on('starting', function () {
+	$('#menu').css('display', 'none');
+	$('#game-starting').css('display', '');
+	starting_audio.play();
+});
+
 function addroute(x, y, d, type) {
 	route.push({ x: x, y: y, d: d, type: type });
 	socket.emit('attack', { x: x, y: y, dx: x + dire[d].x, dy: y + dire[d].y, half: type == 2 });
@@ -480,6 +487,7 @@ $(document).ready(function () {
 	}
 	var tmp = location.pathname;
 	room_id = tmp.substr(tmp.indexOf('games/') + 6);
+	starting_audio = new Audio('/gong.mp3');
 	socket.emit('join_game_room', { 'room': room_id, 'nickname': nickname });
 });
 
@@ -516,9 +524,12 @@ socket.on('room_update', function (data) {
 			setTabVal('custom-team', data.players[i].team ? data.players[i].team.toString() : 'Spectator');
 			if (data.players[i].team) {
 				$('#you-are').css('display', '');
+				$('#you-are-2').css('display', '');
 				$($('#you-are')[0].children[1]).attr('class', 'inline-color-block c' + (i + 1));
+				$($('#you-are-2')[0].children[1]).attr('class', 'inline-color-block c' + (i + 1));
 			} else {
 				$('#you-are').css('display', 'none');
+				$('#you-are-2').css('display', 'none');
 			}
 			if (data.players[i].uid == 'Anonymous') {
 				$('#username-input').val('');
@@ -680,6 +691,29 @@ function checkChat() {
 	$('#chatroom-input').val((is_team ? '[team] ' : '') + res);
 }
 
+socket.on('left', function () {
+	var data = getConf();
+	if (typeof (localStorage) != "undefined") {
+		if (typeof (localStorage.username) == "undefined") {
+			localStorage.username = 'Anonymous';
+		}
+		nickname = localStorage.username;
+	} else {
+		nickname = 'Anonymous';
+	}
+	socket.emit('join_game_room', { 'room': room_id, 'nickname': nickname });
+	socket.emit('change_game_conf', data);
+	$('#menu').css('display', '');
+	$('#game').css('display', 'none');
+	$('#game-leaderboard').css('display', 'none');
+	$('#turn-counter').css('display', 'none');
+	$('#chat-messages-container').html('');
+	$('#status-alert').css('display', 'none');
+	ready_state = 0;
+	in_game = false;
+	replay_id = false;
+});
+
 $(document).ready(function () {
 	var shown = true;
 	$('#chat-messages-container').on('click', function () {
@@ -724,28 +758,6 @@ $(document).ready(function () {
 	});
 	$($('#status-alert').children()[0].children[4]).on('click', function (e) {
 		socket.emit('leave');
-		setTimeout(function () {
-			var data = getConf();
-			if (typeof (localStorage) != "undefined") {
-				if (typeof (localStorage.username) == "undefined") {
-					localStorage.username = 'Anonymous';
-				}
-				nickname = localStorage.username;
-			} else {
-				nickname = 'Anonymous';
-			}
-			socket.emit('join_game_room', { 'room': room_id, 'nickname': nickname });
-			socket.emit('change_game_conf', data);
-			$('#menu').css('display', '');
-			$('#game').css('display', 'none');
-			$('#game-leaderboard').css('display', 'none');
-			$('#turn-counter').css('display', 'none');
-			$('#chat-messages-container').html('');
-			$('#status-alert').css('display', 'none');
-			ready_state = 0;
-			in_game = false;
-			replay_id = false;
-		}, 1000);
 	});
 	$($('#status-alert').children()[0].children[6]).on('click', function (e) {
 		window.open('/replays/' + replay_id, '_blank');

@@ -1,4 +1,4 @@
-import sys, time, json, base64, random, hashlib, eventlet, threading, requests
+import sys, time, json, math, base64, random, hashlib, eventlet, threading, requests
 
 # type: 0=empty 1=mountain 2=swamp -1=city -2=general
 
@@ -88,6 +88,7 @@ class Game:
 	def __init__(self, game_conf, update, player_ids, chat_message, gid, md5, end_game):
 		print('start game:', gid, player_ids, game_conf['player_names'])
 		sys.stdout.flush()
+		self.otime = time.time()
 		self.md5 = md5
 		self.end_game = end_game
 		self.player_ids = player_ids
@@ -172,10 +173,12 @@ class Game:
 			self.m = m
 			self.st = [[False for j in range(m)] for i in range(n)]
 			get_st(self.grid_type, n, m, self.st)
+			self.is_custom = True
 		except:
 			self.genmap()
 
 	def genmap(self):
+		self.is_custom = False
 		ni = random.randint(default_width - 5, default_width + 5)
 		mi = default_width * default_width // ni
 		self.n = n = int(ni * self.height_ratio)
@@ -205,7 +208,7 @@ class Game:
 	def sel_generals(self):
 		ges = []
 		gevals = []
-		for T in range(100):
+		while len(ges) < 500:
 			ge = []
 			sp = []
 			for i in range(self.n):
@@ -227,10 +230,15 @@ class Game:
 			for i in range(self.rpcnt):
 				for j in range(i):
 					tdis = abs(ge[i][0] - ge[j][0]) + abs(ge[i][1] - ge[j][1])
-					tv += 0.88**tdis
+					tv += 0.88**tdis + max(0, 9 - tdis)
 			ges.append(ge)
 			tv += 1e-8
-			gevals.append(1 / tv)
+			tv = 1 / tv
+			if self.is_custom:
+				tv = tv**1.2
+			else:
+				tv = tv**2.2
+			gevals.append(tv)
 		gmax = max(gevals)
 		for i in range(len(ges)):
 			gevals[i] = int(gevals[i] / gmax * 100000)
@@ -239,6 +247,7 @@ class Game:
 			if gevals[i] > gpos:
 				ge = ges[i]
 				break
+			gpos -= gevals[i]
 		for i in range(self.n):
 			for j in range(self.m):
 				if self.st[i][j]:
@@ -478,13 +487,14 @@ class Game:
 		return hs
 
 	def game_loop(self):
-		self.sendmap(False)
+		eventlet.sleep(max(0.01, self.otime + 2 - time.time()))
 		lst = time.time()
+		self.sendmap(False)
 		while True:
-			eventlet.sleep(0.5 / self.speed - time.time() + lst)
+			eventlet.sleep(max(0.01, 0.5 / self.speed - time.time() + lst))
+			lst = time.time()
 			if self.game_tick():
 				break
-			lst = time.time()
 		res = ''
 		for p in range(self.pcnt):
 			if self.pstat[p] != left_game:

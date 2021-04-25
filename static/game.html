@@ -5,8 +5,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-    <script src="/main.js?v=29"></script>
-    <link rel="stylesheet" href="/main.css?v=11">
+    <script src="/main.js?v=30"></script>
+    <link rel="stylesheet" href="/main.css?v=12">
     <title>generals</title>
 </head>
 
@@ -104,15 +104,23 @@
                 <p class="slider-max">high</p>
             </div>
         </div>
-        <p id="host-true" class="custom-host-message" style="background-color:teal;display:none">You are the Host of
-            this game. Only you can change the game's settings.</p>
-        <p id="host-false" class="custom-host-message" style="background-color:rgba(255,0,0,0.25);display:none">You are
-            not the Host of this game, so you cannot change the game's settings.</p>
+        <p id="host-true" class="custom-host-message" style="background-color:teal;display:none">
+            You are the Host of this game. Only you can change the game's settings.
+        </p>
+        <p id="host-false" class="custom-host-message" style="background-color:rgba(255,0,0,0.25);display:none">
+            You are not the Host of this game, so you cannot change the game's settings.
+        </p>
         <div id="you-are" style="display:none">
             <p style="margin-right:3px;display:inline">You are:</p><span></span>
         </div>
         <button id="force-start" style="display:none"></button>
+    </div>
 
+    <div id="game-starting" class="center center-tag" style="display:none">
+        <h1>Game starting...</h1>
+        <div id="you-are-2" style="display:none">
+            <p style="margin-right:3px;display:inline">You are:</p><span></span>
+        </div>
     </div>
 
     <div id="chat" style="display:none">

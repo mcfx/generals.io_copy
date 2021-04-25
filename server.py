@@ -227,7 +227,7 @@ def on_change_ready(data):
 def chk_ready(gid, ioroom):
 	rcnt = 0
 	for i in gr_players[gid]:
-		if i[3]:
+		if i[3] and i[2]:
 			rcnt += 1
 	if rcnt >= get_req(gr_players[gid]) and get_req(gr_players[gid]):
 		start_game(gid)
@@ -306,6 +306,7 @@ def on_disconnect():
 @socketio.on('leave')
 def on_leave():
 	chk_leave()
+	socketio.emit('left', {}, room='sid_' + request.sid)
 
 
 def start_game(gid):
@@ -328,6 +329,7 @@ def start_game(gid):
 		player_teams.append(i[2])
 	grc['player_names'] = player_names
 	grc['player_teams'] = player_teams
+	socketio.emit('starting', {}, room='game_' + gid)
 	game = Game(grc, emit_update, player_sids, chat_message, gid, md5, end_game)
 	emit_init_map(gid, {'n': game.n, 'm': game.m, 'player_ids': player_ids})
 	game.start_game(socketio)
@@ -368,4 +370,4 @@ def on_send_message(data):
 
 
 if __name__ == '__main__':
-	socketio.run(app, port=23333, host='0.0.0.0')
+	socketio.run(app, port=19267, host='0.0.0.0')
